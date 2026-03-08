@@ -14,6 +14,7 @@ background: '/img/posts/01.jpg'
 </p>
 
 <h2>Introduction</h2>
+
 <p>
   Animals, including humans, learn by interacting with their environments and they do so 
   continuously. For instance, when an infant plays, waves its arms or looks about, he receives 
@@ -21,7 +22,9 @@ background: '/img/posts/01.jpg'
   causes and consequences of his actions. He tries things and learns about himself and the environment 
   from that experience. In order to learn how to solve a new task, he must do lot of trial-and-errors 
   depending on the complexity and difficulty of the task at hands, without necessarily relying on any teacher.
-  
+</p>
+    
+<p>
   The purpose of Reinforcement Learning is to provide computational methods to learn from experience. 
   RL is thus learning what to do, how to map situations to actions, by maximizing a numerical reward signal. 
   The promise of RL is to allow machines to learn as any other animal by interaction with their environment and continuously. 
@@ -34,8 +37,66 @@ background: '/img/posts/01.jpg'
   pieces on it. In a robotic navigation, the state may be the robot velocity, position, orientation, etc. In fact, 
   each of these quantities can constitute a state itself, but also their combination can constitute a unique state. 
   
+</p>
+
+<p>
   Note that, for this late example, the state of the world or the environment is not fully known unlike in the game 
   of chess because we have decided to select some aspects of the world and by selecting those we discarded others, 
   like visual information. More on this in future section.
 
 </p>
+
+<p>
+  <i>
+    <b>
+      How Reinforcement learning differs from supervised learning and unsupervised learning?
+    </b>
+  </i>
+</p>
+
+<p>
+  Machine Learning is generally classified in 3 paradigms: Supervised Learning (SL), Unsupervised Learning (UL) and Reinforcement Learning (RL).
+</p>
+
+<p>
+  In Supervised Learning (SL)the learner receives a bunch of examples called training data provided by an external 
+  expert from which it learns how to behave correctly. The data are provided as pairs of inputs and their corresponding 
+  target/label. During inference, the learner is provided with the input and it must predict the correct output even for 
+  the inputs that it did not see during its training phase. That is to generalize to unseen data. SL is generally used in
+  regression tasks (e.g. predict the housing or stock price, etc) and classification tasks (e.g. classify an image as dog,
+  cat, humans, etc). This type of learning, although very useful, is not well suited to learn from interaction alone since
+  it requires an expert to tell the learner which situations to map to which actions.
+</p>
+
+<p>
+  On the other hand, Unsupervised Learning (UL) is about finding structure hidden in unlabeled data. Even though UL and 
+  RL don't require examples of correct behavior during their training phase, they are different because RL is about 
+  solving a task by maximizing a reward signal instead of finding hidden structure. Nevertheless, UL methods are frequently 
+  used in RL to learn better representations of the world in order to solve a task.
+</p>
+
+<p>
+  <i>
+    <b>
+      What problem does it try to solve ?
+    </b>
+  </i>
+  <br>
+  RL methods try to solve goal-directed sequential decision making problems i.e. in order to achieve its goal, a learning 
+  agent must find a sequence of actions to reach that goal.
+</p>
+
+<p>
+  RL problems are typically formulated as a Markov Decision Process (MDP) where an agent interacts with an environment at 
+  discrete time steps. The agent is learner, the decision maker and the environment is everything outside of the agent.
+</p>
+
+<p>
+  MDP is a mathematical framework defined by the tuple {S, A, T, R} where S, A, T, R represents respectively the state space,
+  action space, transition matrix and reward function. The state space represents the set of possible situations that the agent 
+  may see by interacting with the environment; action space is the set of possible actions that the agent can take; the transition
+  matrix is a a distribution that determines the probability of transitioning from a source state to a destination/next state by 
+  taking an action, it's usually represented by T(s, a, s'); and finally the reward function R(s,a) represents the reward received
+  by taking action a in state s. Below is a typical illustration of the interaction between an agent and its environment in a MDP setup.
+</p>
+

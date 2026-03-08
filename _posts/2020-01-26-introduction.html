@@ -13,7 +13,12 @@ background: '/img/posts/01.jpg'
   in the fields of RL and some common applications of RL.
 </p>
 
+<br>
+<hr>
+
 <h2>Introduction</h2>
+
+<br>
 
 <p>
   Animals, including humans, learn by interacting with their environments and they do so 
@@ -46,13 +51,13 @@ background: '/img/posts/01.jpg'
 
 </p>
 
-<p>
+<h3>
   <i>
     <b>
       How Reinforcement learning differs from supervised learning and unsupervised learning?
     </b>
   </i>
-</p>
+</h3>
 
 <p>
   Machine Learning is generally classified in 3 paradigms: Supervised Learning (SL), Unsupervised Learning (UL) and Reinforcement Learning (RL).
@@ -75,13 +80,12 @@ background: '/img/posts/01.jpg'
   used in RL to learn better representations of the world in order to solve a task.
 </p>
 
-<p>
-  <i>
-    <b>
-      What problem does it try to solve ?
-    </b>
-  </i>
+<h3>
+  <i><b> What problem does it try to solve ? </b></i>
   <br>
+</h3>
+
+<p>
   RL methods try to solve goal-directed sequential decision making problems i.e. in order to achieve its goal, a learning 
   agent must find a sequence of actions to reach that goal.
 </p>
@@ -103,6 +107,349 @@ background: '/img/posts/01.jpg'
 <figure class="scientific-figure">
   <img src="/img/posts/intro/mdp.png" alt="The Markov Decision Process (MDP) setup">
   <figcaption>
-    <strong>Figure 1:</strong> A detailed description of the reinforcement learning agent's interaction with the environment over $T$ time steps.
+    <strong>Figure 1:</strong> 
+    <a href="https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf" target="_blank">Sutton & Barto</a>: The agent–environment interaction in a Markov decision process
   </figcaption>
 </figure>
+
+<p>
+  During an interaction with its environment, at each time step, the agent receives some representation of the environment also called state 
+  or observation. Given that state, it can take actions and gets feedback from the environment in the form of a reward signal that informs 
+  the agent about the goodness (or badness) of its actions and then ends up in next state. Its sole goal is to solve the task by maximizing 
+  the cumulative reward signal: this is called the <b><i>Reward hypothesis</i></b>.
+</p>
+
+<p>
+  This reward signal is designed by the user and therefore must be designed in such a way that maximizing it will achieve the user intended goal. 
+  For example, to learn how to play the game of chess, the reward may be +1 in case of a win, -1 for a lost and 0 for a draw; to learn a locomotion 
+  task (walking for a humanoid or quadruped robot), the agent may receive a reward proportional to its forward speed, etc.
+</p>
+
+<p>
+  To maximize its cumulative reward, the learning agent must learn how to win ! Easy, isn't !? Of course, not all tasks can be solved by maximizing 
+  a binary reward as in the game of chess. For example, in robotic navigation, reaching goal position may be the main goal, but other goals such as 
+  minimizing energy usage, maintaining a target orientation, etc require sophisticated reward design. This process of designing a good reward function to solve your task is called Reward Engineering or Reward Shaping. This part is very likely one of the most time consuming and most important when it comes to apply a Reinforcement Learning algorithm.
+</p>
+
+<p>
+  <b><i>How does an RL agent learns to solve a task ?</i></b>
+</p>
+
+<p>
+  In the beginning of its learning phase, an RL agent possesses little or no knowledge about how its actions affect its environment i.e. it does 
+  not know whether an action will yield a positive or negative reward signal and which situations an action or a sequence of action will lead to. 
+  Therefore, it must try them ! By long trial-and-error, it will learn to take actions that lead to good situations i.e. good reward signal whilst 
+  avoiding the ones that lead to bad situations. At the end of the training, an RL agents has learned what is known as an optimal policy. An optimal 
+  policy is a policy, i.e. simply a function, that maps the best action to each situations. The best action, is of course the one leading to the highest 
+  cumulative reward signal. During this series, we will see how this is done in practice, that is, how it is formulated mathematically and how it is 
+  implemented programmatically and deployed on a real or virtual learning agent to solve a task.
+</p>
+
+<p>
+  To give concrete intuitions about an RL agent interaction and learning process, I will illustrate this section with the simple environment below.
+</p>
+
+<figure class="scientific-figure">
+  <img src="/img/posts/intro/blog_chp0.drawio.png" alt="The MDP is (-1) D ← B ← A → B → E (+1)">
+  <figcaption>
+    <strong>Figure 1:</strong> Fig. 1. The goal of this simple task is to maximize reach state E (+1)
+
+  </figcaption>
+</figure>
+
+<p>
+  The MDP specifications are:
+  <ul>
+    <li>States space is { A, B, C, D, E }</li>
+    <li>The actions space is { <left>, <right> } which move the agent respectively in left and right direction with 100% probability (that's the transition function or matrix of this MDP right there). Therefore, this environment is not stochastic.</li>
+    <li>The reward is equal to -1 in state D, +1 in state E and 0 else where</li>
+    <li>An episode terminate when the agent gets in states D (lost) or E (win)</li>
+    <li>All new episode starts at state A</li>
+  </ul>
+</p>
+
+<p>
+  As I mentioned above, at the beginning (first episode) the agent ignores all association between causes
+  (actions) and consequences (returns) in the environment, thus all actions will have the same probability 
+  of being chosen in each state unless we try them. That's why the agent must first explore by choosing an 
+  action randomly and learn from the environment feedback (reward and next state).
+</p>
+<br>
+
+<p>
+  Suppose the first episode looks like the figure (Fig 2.) below:
+</p>
+
+<figure class="scientific-figure">
+  <img src="/img/posts/intro/ep1.png" alt="Episode is: A → C → A → B → D (-1)">
+  <figcaption>
+    <strong>Figure 2:</strong> Fig 2. Simulation of Episode 1 of the above task
+  </figcaption>
+</figure>
+
+<p>
+  It starts at A, the agent can either choose action <left> or <right> (they both have 50% of being chosen) 
+  so it chooses <right> randomly. This leads to C with reward of 0. In a similar way, it chooses <left> in C 
+  which sends it back to A with 0 reward. From A, it chooses <left> this time (because <right> gave 0 reward, 
+  so it want to explore another state ) to go in B with 0 reward. And from B it chooses randomly <left> again 
+  to land in state D where the episode terminates with reward of -1.
+</p>
+
+<p>
+  Now the question is, what a learning agent such as an RL agent can learn from this trial so that it can behave 
+  better in subsequent trials? This episode surely doesn't show where to get in order to receive +1 reward (which 
+  the agent doesn't even know the existence) but it shows that reaching state D is a bad decision(because negative 
+  reward of -1) thus must be avoided. Therefore, taking action <left> when in state B is not a good idea thus the 
+  agent is left only with action <right> ! Given this trial, shall we say that in state A, actions <left> and <right> 
+  are of equal value because they yield both zero reward ? <left> leads to B which might lead to D which is bad therefore 
+  by propagating the badness of D back to A, the agent shall also avoid <left> when in A, unless <right> later leads 
+  to worst outcome.
+</p>
+
+<figure class="scientific-figure">
+  <img src="/img/posts/intro/ep2.png" alt="Episode is: A → C → E (+1)">
+  <figcaption>
+    <strong>Figure 3:</strong> Fig.3 Simulation of episode 2
+  </figcaption>
+</figure>
+
+<p>
+  In episode two (Fig 3.) , the agent chooses <right> in state A (this is called Exploitation because the choice is 
+  not random) to go to C. In C, it will explore action <right> because it learned from previous episode that <left> 
+  leads back to A with 0 reward. And this leads to state E where the episode terminates with reward of +1.
+</p>
+
+<p>
+  From this second episode, our agent has learned that visiting state D gives positive reward. Even tough action <left>
+  and <right> both lead respectively to states B and C with 0 reward, they don't have the same value. Statistically, if 
+  our agent acts only randomly in each state, the action <right> will more often lead to better reward than the <left> 
+  action which will more often lead to lower reward. To reformulate this, this simply means that statistically, the agent 
+  is more likely to get a greater expected return by taking action <right> in state A than the action <left>. Therefore the 
+  action <left> is said to be more valuable in state A than <right> in the same state. And this is one the most important 
+  task that RL methods must tackle.
+</p>
+
+<p>
+  In order to learn complex tasks by trial-and-error, they must learn to evaluate actions and their long term influence on 
+  the reward: it's called the <b><i>Credit Assignment Problem (CAP)</i></b> in the RL literature.
+</p>
+
+<p>
+  I hope that you have now had an intuition about how an RL agent might learn to solve a new task without any prior knowledge
+  about the environment, simply by trial-and-error. We will delve into the technical detail in future posts of this series.
+</p>
+
+<h2>
+  Examples of problems solved with RL?
+</h2>
+
+<p>
+  As previously mentioned, RL algorithms try to solve sequential decision making problem and there are lot of applications 
+  to such methods where they may be used to solve tasks that real human actors can solve. Sometimes even better than human actors.
+</p>
+
+<p>
+  The most famous field of applications for RL algorithms is Video Games (VG). In Video Games, the player must take sequences of 
+  actions to reach a goal and get rewarded or punished depending on the outcome of the game. The situation or state or observation 
+  in such case may be video frames of the game, or information related to the characters (player or enemies) in the game that are  
+  relevant for wining.
+</p>
+
+<p>
+  The game of "Go" was reputed to be hard to solve for machine because of the incredible number of possibilities that may raise during 
+  a game play, in the order of 10²⁵⁰. Far greater than the number of atoms in the observable universe. In the game of Go, the state would 
+  be the board (represented as a matrix) with all stones (pieces of the game of Go) played up-to-now and the reward signal would be as the 
+  game of chess (+1 for a win, -1 for a lost, 0 for a draw).
+</p>
+
+<p>
+  In 2016, DeepMind invented AlphaGo to beat the top human player at the time, Lee Sedeol (I recommend watching <a href="https://www.youtube.com/watch?v=WXuK6gekU1Y&t=4660s" target="_blank">AlphaGo the Movie</a> on YouTube, 
+  a master piece !). AlphaGo was based mainly on RL methods, specifically Monte Carlo Tree Search (MCTS) algorithm. A more advanced version of 
+  AlphaGo is AlphaZero which learned the game without any human prior (except for the reward design phase of course) by simply playing against 
+  itself with RL. By playing against itself (self-play), and by trial-and-error, AlphaGo learned all the strategies and tactics to win a game 
+  of Go simply with a scalar reward (<a href="https://arxiv.org/abs/2112.15422" target="_blank">Is scalar reward enough to develop all necessary intelligence to solve Go?</a>) No human can beat the best machines 
+  today !
+</p>
+
+<p>
+  Another use case of RL in real world is self-driving cars. In fact, any mobile robot can be controlled with RL. Mobile robots navigation require 
+  control and planning. Both of these can be modeled as a MDP thus solvable with RL algorithms. The observation may be vehicle odometry (speed, 
+  orientation, etc), goal information, energy state of the vehicle, Lidar point clouds, videos frame if the robot has a camera, GPS, maps, etc. 
+  A good reward function will necessary include penalty for hitting obstacles, penalty for driving faster than the authorized speed limit, reward 
+  for reaching the destination and more. In fact, one may train a RL agent to achieve anything a human driver could achieve with a car such as 
+  overtaking, lane changing, etc, the limit is in the design of the reward function. For example, what reward function to respect ethical and 
+  social aspects of self-driving cars ? or for a motorbike for example do cascades with the motor bike ? you see that things can be trickier !
+</p>
+
+<p>
+  One of the most recent and most powerful use case of RL is in the fine-tuning process of Large Language Model (LLM) into chat bot (chatgpt, 
+  deepseek-R1, gemini, etc). Pre-trained LLMs are known to be good at predicting the next word (or token) in a sentence after being trained 
+  on the whole internet. They write well structured and grammatically correct sentences. However, they often have some issues such as hallucination, 
+  misinformation, generating harmful and sensitive contents, etc. In one sentence, they are not yet aligned with human values. This is where enters RL, 
+  mostly Reinforcement Learning from Human Feedback (RLHF) ! By using RLHF, the LLM model learns to generate responses that are aligned with human 
+  preferences, responses that are helpful, harmless, concise, creative, etc. RL allows to have more control over LLMs behavior and helps mitigate 
+  negative behaviors through the reward function.
+</p>
+
+<p>
+  The agent is obviously the LLM model itself, the state or observation is the user prompt(s) and the system prompt or description of tools available 
+  in case of agentic LLM. The action could be choosing between different potential answer to a question in order to maximize the reward which could be 
+  about how helpful or harmless or concise, the answer is. Actions could also be whether to perform reasoning to answer a given question or not. 
+  The reward is usually designed to tell the LLM how good or bad is the generated output.
+</p>
+
+<p>
+  There exist so many other applications of RL that I didn't mention here such as industry automation, financial trading, task scheduling, etc.
+</p>
+
+<h2>
+  Challenges in RL:
+</h2>
+
+<p>
+  I will talk about some of the many challenges that ML Engineers and Researchers are facing in Reinforcement Learning. If you're an engineer 
+  who only focus on applications of RL, you may not face some of the challenges that I will mention but they are to be overcome those 
+  researchers willing to develop new RL algorithms.
+</p>
+
+<p>
+  When you're an engineer, the first step to do when you want to use a given RL algorithm to solve your task is to design your environment 
+  in order to train your model. Because RL methods are reputed to be sample inefficient, they often require lot of interactions (from 
+  thousands to millions of actions taken to learn how to solve a task depending on the complexity or difficulty of the task at hand). 
+  Therefore, you cannot afford to train in real environment thus needs to build a realistic environment to train your model in before 
+  deploying it in real world. This part is very tricky because if your simulated environment reflects poorly the real world (because 
+  you made it too perfect or forget about some important aspects of environment), the policy that your agent will optimize within 
+  simulation will inevitably under-perform in real life. For example in autonomous navigation, the dynamics of the environment must 
+  reflect the world dynamics in which the robot will be deployed
+</p>
+
+<p>
+  If you want your robot to be robust to strong disturbances, then you must apply strong random disturbances during training so that 
+  your model learns to generalize to those situations. Likewise, a trading agent must be trained in realistic environment with 
+  fluctuations that mimics those of real people so that your model can develop strategies that have a chance in real life. This seems 
+  obvious but it's very important to keep it in mind and understand that RL does not do miracles. Don't be surprised if you see your 
+  agent performing poorly in situations you didn't show it during its training phase.
+</p>
+
+<p>
+  Another challenge that you will face when you plan to use RL is of course reward engineering. That is to say, designing a reward 
+  function or model that acts as a judge and will give feedback to the agent whenever it takes an action in a given situations. 
+  It needs to be designed in such a way that maximizing it will solve your task. You may choose to give a reward signal only at 
+  the end of a trial, give positive reward when the goal is reached and negative reward when the goal is not reached. This is 
+  likely the cleanest way to let the agent express itself and find out all the necessary skills required to maximize that reward 
+  signal. For example, in the game of Go, to maximize its wining chance to receive + 1 reward and avoid the cost of losing, 
+  AlphaZero learned about attack and defense, discovered new opening sequences, learned to play safe when ahead, etc.
+</p>
+
+<p>
+  However, this reward design technique has some drawbacks: not all tasks have a clear win or lost position, and it's slow to converge 
+  because the agent must first reach the goal or lose to even have any meaningful feedback which give raise to the credit assignment 
+  problem (more on this later). To illustrate the first, let's consider an autonomous navigation task like reach a target position. 
+  In such case, giving a binary reward (0 until goal and +1 when the target is reached) will mean that the only objective here is 
+  reaching the goal, which is not always true. The agent might accelerate all his way to the goal, or doing some zig-zag, or going 
+  backward, etc. We also want to use less actuator energy, maximize comfort (no strange movement like a zig-zag, etc). To accelerate 
+  the learning phase, we may give reward feedback in a continuous way in order to guide the agent toward the target position quickly. 
+  Hence the reward function is usually a continuous function that the agent receives at each time step. It may be composed of a distance 
+  based term (e.g. negative distance from the target position, therefore any action that reduces the distance to the target is usually 
+  considered good), an energy term to penalize excessive use of actuators, a safety term (e.g. negative reward when the agent gets too 
+  close to an obstacle) and even some additional terms for comfort (e.g. negative reward for frequent change of vehicle orientation or 
+  its acceleration).
+</p>
+
+<p>
+  A challenge that inevitably arises in all RL task, and that is not usually faced in other type of machine learning methods like SL and USL, 
+  is the exploration-exploitation trade-off. As mentioned previously, an RL agent training phase consists of mapping the situations to the 
+  best actions possible. During that learning, it needs to explore its action space by trying different actions in different states. However, 
+  during its interaction within the environment, the RL agent might discover that one or several actions yield good rewards. One of two things 
+  here, it can either continue selecting that action that it has had good experience with, or try other actions that it has not tried before as 
+  we saw in the above example (in state C). Because, what if there exist a better action that has not been tried yet ? 
+</p>
+
+<p>
+  In fact, this is a dilemma that our RL agent is currently facing here, therefore it needs to find a trade-off between always choosing the action that yields the most reward, 
+  that is called Exploitation, or sometimes choosing another action that it didn't experience before, that is Exploration. This exploration is really 
+  important mostly in stochastic or non-stationary tasks where the agent needs to try each actions many times in order to have a reliable estimates 
+  of their expected reward.
+</p>
+
+<p>
+  This exploration-exploitation trade-off problem has been studied for a long time by the RL researchers around the world and still remain unsolved 
+  (mathematically) though some heuristics exist that have proved good results in practice.
+</p>
+
+<p>
+  Now let's talk about one the most important challenge in RL, the credit assignment problem (CAP). CAP is about evaluating the long term influence of 
+  individual actions taken by an RL agent over the return. In order to successfully deploy RL agents in real life, it is important to solve the CAP 
+  since most feedback in real life can be noisy and delayed which makes it difficult to associate individual actions to their long term outcomes. 
+  To measure action influence, many RL methods use the so-called state-action value function (more on this subsequent posts in this series) where 
+  actions contribute as much as the expected return they achieve at termination of the episode.
+</p>
+
+<p>
+  There remains many other challenges that I didn't mention above which are still very important in the field of RL and some of them is sample 
+  inefficiency (RL methods often require lot of interaction to solve some tasks that may require just few iterations with a human) which can 
+  lead to huge computational cost hence a high environmental impact.
+</p>
+
+<p>
+  Some more open questions in the research are transfer learning which tackle the question of transferring or reusing the knowledge of the agent 
+  in one task to another task that shares some similarity with the previous one; continual learning which studies agents that learn and update 
+  their behavior in an environment according to new incoming information in a continuous way; etc.
+</p>
+
+<h3>
+  What are its advantages over other learning method?
+</h3>>
+
+<p>
+  One of the challenges that arise in reinforcement learning, and not in other kinds of learning, is the trade-off between exploration and 
+  exploitation. To obtain a lot of reward, a reinforcement learning agent must prefer actions that it has tried in the past and found to be 
+  effective in producing reward. But to discover such actions, it needs to try actions that it has not selected before. The agent has to 
+  exploit what it has already experienced in order to obtain reward, but it also has to explore in order to make better action selections 
+  in the future. The dilemma is that neither exploration nor exploitation can be pursued exclusively without failing at the task. 
+  The agent must try different actions and progressively select those that yield the most rewards. When the environment is stochastic, 
+  each action must be tried many times to have a reliable estimate of its expected reward. The exploration-exploitation dilemma has been 
+  studied by mathematicians for many decades, and still remains unresolved. Contrary to RL, the entire issue of balancing exploration and 
+  exploitation does not even arise in supervised and unsupervised learning.
+</p>
+
+<h2>
+  Conclusion
+</h2>
+
+<p>
+  In this chapter, we introduced what Reinforcement Learning is and how it differs from other well known form of Machine Learning such as 
+  Supervised Learning and Unsupervised Learning.
+</p>
+
+<p>
+  RL is a Machine Learning technique to tackle sequential decision problem by trial-and-error. In RL, the interaction of the agent 
+  within its environment is modeled as Markov Decision Process (MDP). MDP is a mathematical framework defined by the tuple {S, A, T, R} 
+  where S, A, T, R represents respectively the state space, action space, transition matrix and reward function. An RL agent has no 
+  knowledge of the causality in its environment in the beginning of its learning phase, thus must learn by trial-and-error. It learns 
+  by estimating long term consequences of actions to make a well informed decision.
+</p>
+
+<p>
+  We saw that RL can be applied to any sequential decision making problem like Video Games, Finance, Robotics, Chatbot, task scheduling, 
+  traffic routing, etc, basically any task that requires planning and decision making to achieve a goal.
+</p>
+
+<p>
+  In the next post, we will start with the real stuff, we will be doing some Math that are very light but allow this kind of learning. 
+  There are a lot to come !  In this blog, we see big and will tackle some of the most advanced and sophisticated RL algorithm that are achieving spectacular results in RL !
+</p>
+
+<p>
+  Bye !
+</p>
+
+<h3>
+  Some references:
+</h3>
+
+<ol>
+  <li><a href="https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf" target="_blank">Sutton and Barto, Reinforcement Learning: an introduction</a></li>
+  <li><a href="https://arxiv.org/abs/2312.01072" target="_blank">A survey on Credit Assignment Problem (CAP)</a></li>
+  <li><a href="https://www.sciencedirect.com/science/article/pii/S0004370221000862" target="_blank">Reward is enough</a> and <a href="https://arxiv.org/pdf/2112.15422" target="_blank">Reward is not enough</a></li>
+</ol>

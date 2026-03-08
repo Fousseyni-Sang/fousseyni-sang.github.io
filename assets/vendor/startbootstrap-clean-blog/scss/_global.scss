@@ -89,7 +89,27 @@ img::-moz-selection {
     padding: 5px;
 }
 
-.scientific-figure figcaption {
+
+
+.noscientific-figure figcaption {
+    margin-top: 10px;
+    font-size: 1.25rem;   /* Slightly smaller than main text */
+    color: #555;         /* Slightly greyed out */
+    font-style: italic;  /* Classic scientific look */
+    line-height: 1.5;
+    max-width: 80%;      /* Keeps the caption from being too wide */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.noscientific-figure {
+    display: block;
+    margin: 2rem auto; /* Centers the whole block and adds vertical spacing */
+    text-align: center; /* Centers the image and caption */
+    max-width: 90%;    /* Prevents the image from being too huge */
+}
+
+.noscientific-figure figcaption {
     margin-top: 10px;
     font-size: 1.25rem;   /* Slightly smaller than main text */
     color: #555;         /* Slightly greyed out */
